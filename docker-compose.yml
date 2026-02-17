@@ -1,9 +1,0 @@
-version: "3.9"
-
-services:
-  vue-app:
-    container_name: vue-app
-    build: .
-    ports:
-      - "5010:80"
-    restart: always
