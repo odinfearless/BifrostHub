@@ -5,5 +5,5 @@ services:
     container_name: vue-app
     build: .
     ports:
-      - "8080:80"
+      - "5010:80"
     restart: unless-stopped
