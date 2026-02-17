@@ -1,19 +1,10 @@
-version: "3.9"
+version: '3.8'
 
 services:
-
-  vue-app:
-    build: ./app
-    container_name: vue-app
-    restart: always
-    expose:
-      - "80"
-
-  nginx:
-    image: nginx:alpine
-    container_name: nginx-proxy
+  # --- Aplicação Vue.js ---
+  app:
+    build: .
+    container_name: tailadmin_frontend
     ports:
-      - "5010:80"    
-    depends_on:
-      - vue-app
+      - "5010:80" # Acede via http://localhost:8080
     restart: always
