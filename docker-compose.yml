@@ -6,4 +6,4 @@ services:
     build: .
     ports:
       - "5010:80"
-    restart: restart-always
+    restart: always
