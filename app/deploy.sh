@@ -27,4 +27,4 @@ echo "Limpando imagens antigas..." | tee -a $LOG_FILE
 docker image prune -f | tee -a $LOG_FILE
 
 echo "Deploy finalizado com sucesso!" | tee -a $LOG_FILE
-echo "Aplicação rodando em: http://SEU_IP_DO_SERVIDOR" | tee -a $LOG_FILE
+echo "Aplicação rodando em: PROD" | tee -a $LOG_FILE
