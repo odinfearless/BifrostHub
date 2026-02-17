@@ -1,109 +1,202 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, reactive } from 'vue'
 import FullCalendar from '@fullcalendar/vue3'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import ptBrLocale from '@fullcalendar/core/locales/pt-br'
+import flatpickr from 'flatpickr'
 
-// --- ESTADO ---
-const calendarOptions = ref({
-  plugins: [timeGridPlugin, interactionPlugin],
-  initialView: 'timeGridWeek',
-  locale: ptBrLocale,
-  headerToolbar: {
-    left: 'prev,next today',
-    center: 'title',
-    right: 'timeGridWeek,timeGridDay'
-  },
-  
-  // Configurações de Horário (Sua Regra de Negócio)
-  slotDuration: '00:30:00', // Cada slot tem 30 min
-  slotMinTime: '08:00:00',  // Começa às 08h
-  slotMaxTime: '18:00:00',  // Termina às 18h
-  allDaySlot: false,
-  hiddenDays: [1],          // 0=Dom, 1=Seg... (Esconde Segunda-feira)
+// Componentes e Ícones
+import AdminLayout from '@/components/layout/AdminLayout.vue'
+import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
+import Modal from '@/components/profile/Modal.vue'
+import { TableIcon } from "../../icons"
+import api from '@/services/api'
 
-  // Interações
-  selectable: true,
-  editable: true,
-  
-  // TODO: Implementar lógica para abrir modal de novo agendamento ao selecionar
-  select: (info: any) => {
-    alert('Abrir Modal para: ' + info.startStr)
-    console.log('Informações do slot:', info)
-  },
+// --- ESTADOS ---
+const calendarRef = ref<any>(null)
+const calendarEvents = ref<any[]>([])
+const showModal = ref(false)
+const clientes = ref<any[]>([])
+const servicos = ref<any[]>([])
+const datePickerBtn = ref<HTMLElement | null>(null)
 
-  // TODO: Implementar clique no agendamento existente para ver detalhes/pagamento
-  eventClick: (info: any) => {
-    alert('Serviço: ' + info.event.title + '\nStatus: ' + info.event.extendedProps.status)
-  },
-
-  // TODO: Criar a conexão com o backend Node/Postgres
-  // GET /api/agendamentos
-  events: [
-    {
-      id: '1',
-      title: 'João - CT1 (Corte)',
-      start: '2026-02-17T10:00:00',
-      end: '2026-02-17T10:30:00',
-      extendedProps: { status: 'PAGO', servico: 'CT1' },
-      backgroundColor: '#10B981' // Verde para pago
-    },
-    {
-      id: '2',
-      title: 'Maria - CT2 (Corte+Barba)',
-      start: '2026-02-17T11:00:00',
-      end: '2026-02-17T12:00:00', // 2 slots de 30min
-      extendedProps: { status: 'PENDENTE', servico: 'CT2' },
-      backgroundColor: '#F59E0B' // Amarelo para pendente
-    }
-  ]
+const form = reactive({
+  cliente_id: '',
+  servico_id: '',
+  data_inicio: '',
+  data_fim: ''
 })
+
+onMounted(() => {
+  fetchData()
+  if (datePickerBtn.value) {
+    flatpickr(datePickerBtn.value, {
+      locale: 'pt',
+      dateFormat: 'Y-m-d',
+      disableMobile: true,
+      onChange: (selectedDates, dateStr) => {
+        if (calendarRef.value) {
+          const calendarApi = calendarRef.value.getApi()
+          calendarApi.gotoDate(dateStr)
+        }
+      }
+    })
+  }
+})
+
+const fetchData = async () => {
+  try {
+    const [resAgendamentos, resClientes, resServicos] = await Promise.all([
+      api.get('/agendamentos'),
+      api.get('/clientes'),
+      api.get('/servicos')
+    ])
+    calendarEvents.value = resAgendamentos.data.map((ag: any) => ({
+      id: ag.id,
+      title: `${ag.clientes?.nome || 'Cliente'} - ${ag.servicos_salao?.codigo || 'ST'}`,
+      start: ag.data_hora_inicio,
+      end: ag.data_hora_fim,
+      backgroundColor: ag.pago ? '#10B981' : '#F59E0B',
+      borderColor: 'transparent'
+    }))
+    clientes.value = resClientes.data
+    servicos.value = resServicos.data
+  } catch (error) {
+    console.error('Erro ao buscar dados:', error)
+  }
+}
+
+const handleSelect = (info: any) => {
+  form.data_inicio = info.startStr
+  form.data_fim = info.endStr
+  showModal.value = true
+}
+
+const salvarAgendamento = async () => {
+  try {
+    await api.post('/agendamentos', form)
+    showModal.value = false
+    fetchData()
+  } catch (error) {
+    alert('Erro ao guardar agendamento')
+  }
+}
 </script>
 
 <template>
-  <div class="mx-auto max-w-7xl">
-    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <h2 class="text-title-md2 font-bold text-black dark:text-white">
-        Agenda Bifrost Salão
-      </h2>
-      
-      <div class="flex gap-2">
-        <span class="flex items-center gap-2 text-sm font-medium">
-          <span class="block h-3 w-3 rounded-full bg-[#10B981]"></span> Pago
-        </span>
-        <span class="flex items-center gap-2 text-sm font-medium">
-          <span class="block h-3 w-3 rounded-full bg-[#F59E0B]"></span> Pendente
-        </span>
+  <AdminLayout>
+    <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center gap-4">
+        <PageBreadcrumb pageTitle="Agenda do Salão" />
+        <button ref="datePickerBtn" type="button" class="flex h-11 w-11 items-center justify-center rounded-xl border border-gray-200 bg-white text-gray-600 shadow-sm transition-all hover:bg-gray-50 hover:text-primary dark:border-gray-800 dark:bg-white/[0.03] dark:text-gray-400 dark:hover:bg-white/[0.08]">
+          <component :is="TableIcon" class="h-6 w-6" />
+        </button>
       </div>
     </div>
 
-    <div class="rounded-sm border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark md:p-6">
-      <div class="calendar-container">
-        <FullCalendar :options="calendarOptions" />
+    <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
+      <div class="custom-calendar">
+        <FullCalendar ref="calendarRef" class="min-h-[650px]" :options="{
+          plugins: [timeGridPlugin, interactionPlugin],
+          initialView: 'timeGridWeek',
+          locale: ptBrLocale,
+          slotDuration: '00:30:00',
+          slotMinTime: '08:00:00',
+          slotMaxTime: '18:00:00',
+          hiddenDays: [1],
+          allDaySlot: false,
+          selectable: true,
+          events: calendarEvents,
+          select: handleSelect,
+          headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'timeGridWeek,timeGridDay'
+          }
+        }" />
       </div>
     </div>
-  </div>
+
+    <Modal v-if="showModal" @close="showModal = false">
+      <template #body>
+        <div class="no-scrollbar relative w-full max-w-[500px] overflow-y-auto rounded-3xl bg-white p-6 dark:bg-gray-900 lg:p-11 text-left">
+          <h5 class="mb-2 font-semibold text-gray-800 text-theme-xl dark:text-white/90 lg:text-2xl">Novo Agendamento</h5>
+          <form @submit.prevent="salvarAgendamento">
+            <div class="space-y-6 mt-8">
+              <div>
+                <label class="mb-2.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Cliente</label>
+                <select v-model="form.cliente_id" required class="w-full rounded-xl border border-gray-300 bg-transparent px-5 py-3.5 outline-none dark:border-gray-700 dark:bg-white/[0.03] dark:text-white">
+                  <option value="" disabled class="dark:bg-gray-900">Selecione o cliente</option>
+                  <option v-for="c in clientes" :key="c.id" :value="c.id" class="dark:bg-gray-900 dark:text-white">{{ c.nome }}</option>
+                </select>
+              </div>
+              <div>
+                <label class="mb-2.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Serviço</label>
+                <select v-model="form.servico_id" required class="w-full rounded-xl border border-gray-300 bg-transparent px-5 py-3.5 outline-none dark:border-gray-700 dark:bg-white/[0.03] dark:text-white">
+                  <option value="" disabled class="dark:bg-gray-900">Selecione o serviço</option>
+                  <option v-for="s in servicos" :key="s.id" :value="s.id" class="dark:bg-gray-900 dark:text-white">{{ s.codigo }} - {{ s.nome }}</option>
+                </select>
+              </div>
+            </div>
+            <div class="mt-10 flex items-center gap-4">
+              <button type="button" @click="showModal = false" class="flex w-full justify-center rounded-xl border border-gray-300 p-4 font-semibold text-gray-700 dark:text-white">Cancelar</button>
+              <button type="submit" class="flex w-full justify-center rounded-xl bg-primary p-4 font-semibold text-white">Confirmar</button>
+            </div>
+          </form>
+        </div>
+      </template>
+    </Modal>
+  </AdminLayout>
 </template>
 
-<style>
-/* Estilização para o FullCalendar se adaptar ao tema dark do TailAdmin */
-.fc {
-  --fc-border-color: #e2e8f0;
-  --fc-today-bg-color: rgba(60, 80, 224, 0.05);
+<style scoped>
+/* ===== TEXTOS DO CALENDÁRIO ===== */
+
+/* Toolbar (Título, dias, horas) */
+:global(.dark) :deep(.fc-toolbar-title),
+:global(.dark) :deep(.fc-col-header-cell-cushion),
+:global(.dark) :deep(.fc-timegrid-axis-cushion),
+:global(.dark) :deep(.fc-timegrid-slot-label-cushion),
+:global(.dark) :deep(.fc-list-day-text),
+:global(.dark) :deep(.fc-list-day-side-text) {
+  color: #ffffff !important;
+  font-weight: 600;
 }
 
-.dark .fc {
-  --fc-border-color: #313d4a;
-  --fc-list-event-hover-bg-color: #24303f;
-  color: #aeb7c0;
+/* Horários laterais */
+:global(.dark) :deep(.fc-timegrid-slot-label) {
+  color: #94a3b8 !important; /* gray-400 */
 }
 
-.fc .fc-toolbar-title {
-  @apply text-xl font-bold text-black dark:text-white;
+/* ===== GRID E FUNDO ===== */
+
+:global(.dark) :deep(.fc-theme-standard td),
+:global(.dark) :deep(.fc-theme-standard th),
+:global(.dark) :deep(.fc-theme-standard .fc-scrollgrid) {
+  border-color: #2e3a47 !important;
 }
 
-.fc .fc-button-primary {
-  @apply bg-primary border-primary hover:bg-opacity-90;
+:global(.dark) :deep(.fc-timegrid-slot) {
+  background-color: transparent !important;
+}
+
+/* ===== EVENTOS ===== */
+:global(.dark) :deep(.fc-event-title),
+:global(.dark) :deep(.fc-event-time) {
+  color: #ffffff !important;
+}
+
+/* ===== BOTÕES ===== */
+:global(.dark) :deep(.fc-button) {
+  background-color: rgba(255,255,255,0.05) !important;
+  border-color: #2e3a47 !important;
+  color: #ffffff !important;
+}
+
+:deep(.fc-button-active) {
+  background-color: #3c50e0 !important;
+  border-color: #3c50e0 !important;
+  color: #ffffff !important;
 }
 </style>
