@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  # --- Banco de Dados PostgreSQL ---
+  db:
+    image: postgres:15-alpine
+    container_name: bifrost_db
+    restart: always
+    environment:
+      POSTGRES_USER: bifrosthub
+      POSTGRES_PASSWORD: BiFrost@1602  # Altere para uma senha forte em produção
+      POSTGRES_DB: bifrost_hub     # Nome do banco de dados
+    ports:
+      - "5432:5432"
+    volumes:
+      # Persistência dos dados (garante que não perca dados ao reiniciar)
+      - pgdata:/var/lib/postgresql/data
+      # Executa o script de criação das tabelas na primeira inicialização
+      # Certifique-se de que o arquivo está na pasta database/init.sql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  # --- Interface Visual (PgAdmin) ---
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: bifrost_pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@bifrost.com
+      PGADMIN_DEFAULT_PASSWORD: BiFrost@1602
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+
+volumes:
+  pgdata:
