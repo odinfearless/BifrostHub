@@ -3,29 +3,29 @@
 # --- CONFIGURAÇÕES ---
 USER="ubuntu"
 HOST="201.54.3.47"
-DIR="~/BifrostHub"
+DIR="~/BifrostHub"    # Raiz do Repositório (onde roda o Git)
+APP_DIR="app"         # Subpasta onde está o docker-compose.yml
 
 echo "🚀 Conectando em $HOST para iniciar o deploy..."
 
-# A flag -T evita o aviso "Pseudo-terminal will not be allocated"
 ssh -T $USER@$HOST << EOF
-    # Tudo aqui dentro roda na VM
-    set -e # Para o script se qualquer comando falhar
+    set -e
 
-    echo "📂 Entrando na pasta..."
+    echo "📂 1. Entrando na raiz do projeto..."
     cd $DIR
 
-    echo "ZG Sincronizando código (Modo FORÇADO)..."
-    # Baixa as informações do remoto sem aplicar
+    echo "ZG 2. Sincronizando código (Git)..."
     git fetch origin
-    # FORÇA a pasta atual a ficar idêntica ao GitHub (descarta alterações locais)
     git reset --hard origin/main
 
-    echo "Rx Reiniciando Docker..."
+    echo "📂 3. Entrando na pasta da aplicação ($APP_DIR)..."
+    cd $APP_DIR  # <--- AQUI ESTAVA O ERRO (Faltava entrar nesta pasta)
+
+    echo "Rx 4. Reiniciando Docker..."
     docker compose down
     docker compose up --build -d
 
-    echo "hw Limpando lixo..."
+    echo "hw 5. Limpando lixo..."
     docker image prune -f
 
     echo "✅ Deploy finalizado!"
