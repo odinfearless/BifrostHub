@@ -14,7 +14,7 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 
 RUN echo "=== LISTANDO DIRETORIO ATUAL ===" && ls -la
 
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+#COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 
 EXPOSE 80
