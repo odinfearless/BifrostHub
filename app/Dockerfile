@@ -12,7 +12,8 @@ FROM nginx:alpine
 
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-RUN CAT ./nginx.conf
+RUN echo "=== LISTANDO DIRETORIO ATUAL ===" && ls -la
+
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 
