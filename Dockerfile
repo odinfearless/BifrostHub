@@ -10,6 +10,7 @@ RUN npm ci
 
 COPY . .
 RUN npm run build
+RUN npm run preview
 
 
 # ==============================
@@ -24,6 +25,6 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 
-RUN npm run preview
+
 
 CMD ["nginx", "-g", "daemon off;"]
