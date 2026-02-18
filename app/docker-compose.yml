@@ -1,10 +1,20 @@
-version: '3.8'
+version: "3.9"
 
 services:
-  # --- Aplicação Vue.js ---
-  app:
-    build: .
-    container_name: tailadmin_frontend
+  backend:
+    build: ./backend
+    container_name: backend_app
+    restart: always
+    expose:
+      - "3000"
+
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+    container_name: nginx_app
     ports:
-      - "5010:80" # Acede via http://localhost:8080
+      - "5010:80"
+    depends_on:
+      - backend
     restart: always
