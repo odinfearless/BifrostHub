@@ -1,3 +1,16 @@
+# ---------- BUILD STAGE ----------
+FROM node:22-alpine AS build
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+RUN npx prisma generate
+
+# ---------- PRODUCTION STAGE ----------
 FROM node:22-alpine
 
 WORKDIR /app
@@ -5,12 +18,10 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install --omit=dev
 
-COPY . .
-
-RUN npx prisma generate
+COPY --from=build /app ./
 
 ENV NODE_ENV=production
 
 EXPOSE 3000
 
-CMD ["node", "index.js"]
+CMD ["node", "src/server.js"]

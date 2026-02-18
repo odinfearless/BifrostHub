@@ -50,7 +50,7 @@ const fetchData = async () => {
     const [resAgendamentos, resClientes, resServicos] = await Promise.all([
       api.get('/agendamentos'),
       api.get('/clientes'),
-      api.get('/servicos')
+      api.get('/servicos')      
     ])
     calendarEvents.value = resAgendamentos.data.map((ag: any) => ({
       id: ag.id,
