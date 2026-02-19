@@ -12,6 +12,8 @@ import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import Modal from '@/components/profile/Modal.vue'
 import { TableIcon } from "../../icons"
 import api from '@/services/api'
+import { Portuguese } from 'flatpickr/dist/l10n/pt.js'
+import Alert from '@/components/ui/Alert.vue'
 
 // --- ESTADOS ---
 const calendarRef = ref<any>(null)
@@ -32,7 +34,7 @@ onMounted(() => {
   fetchData()
   if (datePickerBtn.value) {
     flatpickr(datePickerBtn.value, {
-      locale: 'pt',
+      locale: Portuguese,
       dateFormat: 'Y-m-d',
       disableMobile: true,
       onChange: (selectedDates, dateStr) => {
@@ -46,13 +48,15 @@ onMounted(() => {
 })
 
 const fetchData = async () => {
-  try {
+  try {   
     const [resAgendamentos, resClientes, resServicos] = await Promise.all([
       api.get('/agendamentos'),
       api.get('/clientes'),
       api.get('/servicos')      
     ])
-    calendarEvents.value = resAgendamentos.data.map((ag: any) => ({
+    
+    const agendamentos = [...resAgendamentos.data]
+    calendarEvents.value = agendamentos.map((ag: any) => ({
       id: ag.id,
       title: `${ag.clientes?.nome || 'Cliente'} - ${ag.servicos_salao?.codigo || 'ST'}`,
       start: ag.data_hora_inicio,
@@ -78,6 +82,7 @@ const salvarAgendamento = async () => {
     await api.post('/agendamentos', form)
     showModal.value = false
     fetchData()
+    alert('Erro ao guardar agendamento')
   } catch (error) {
     alert('Erro ao guardar agendamento')
   }
@@ -94,6 +99,7 @@ const salvarAgendamento = async () => {
         </button>
       </div>
     </div>
+
 
     <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-white/[0.03]">
       <div class="custom-calendar">
@@ -119,7 +125,7 @@ const salvarAgendamento = async () => {
     </div>
 
     <Modal v-if="showModal" @close="showModal = false">
-      <template #body>
+      <template #body> 
         <div class="no-scrollbar relative w-full max-w-[500px] overflow-y-auto rounded-3xl bg-white p-6 dark:bg-gray-900 lg:p-11 text-left">
           <h5 class="mb-2 font-semibold text-gray-800 text-theme-xl dark:text-white/90 lg:text-2xl">Novo Agendamento</h5>
           <form @submit.prevent="salvarAgendamento">

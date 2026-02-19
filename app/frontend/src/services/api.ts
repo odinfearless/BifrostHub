@@ -1,8 +1,7 @@
 import axios from 'axios'
 
 const api = axios.create({
-  // URL do seu container Node (ajuste se a porta for diferente de 3000)
-  baseURL: '/api',
+  baseURL: import.meta.env.VITE_BACKEND_API_URL,
   headers: {
     'Content-Type': 'application/json'
   }
