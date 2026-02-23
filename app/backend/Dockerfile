@@ -8,6 +8,7 @@ RUN npm install
 
 COPY . .
 
+RUN npm prisma db pull
 RUN npx prisma generate
 
 # ---------- PRODUCTION STAGE ----------
