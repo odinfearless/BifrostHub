@@ -3,6 +3,7 @@
 APP_NAME="vue-app"
 IMAGE_NAME="vue-app-image"
 LOG_FILE="deploy.log"
+BRANCH="main"
 
 echo "=====================================" | tee -a $LOG_FILE
 echo "Iniciando deploy: $(date)" | tee -a $LOG_FILE
@@ -12,6 +13,7 @@ echo "=====================================" | tee -a $LOG_FILE
 if [ -d ".git" ]; then
     echo "Atualizando repositório..." | tee -a $LOG_FILE
     git pull | tee -a $LOG_FILE
+	git checkout $BRANCH | tee -a $LOG_FILE
 fi
 
 echo "Parando container antigo..." | tee -a $LOG_FILE
