@@ -180,12 +180,7 @@ const menuGroups = [
         icon: GridIcon,
         name: "Dashboard",
         path: "/",
-      },
-      {
-        icon: UserCircleIcon,
-        name: "Perfil",
-        path: "/profile",
-      },
+      }     
     ],
   },
   {
@@ -202,22 +197,7 @@ const menuGroups = [
         path: "/salon/customers",
       },
     ],
-  },
-  {
-    title: "Módulos Extras",
-    items: [
-      {
-        icon: TableIcon,
-        name: "Lava Jato",
-        path: "/carwash/orders",
-      },
-      {
-        icon: ListIcon,
-        name: "Conveniência",
-        path: "/inventory/pos",
-      },
-    ],
-  },
+  }  
 ];
 
 const isActive = (path) => route.path === path;

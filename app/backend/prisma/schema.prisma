@@ -12,7 +12,7 @@ model agendamentos {
   cliente_id       Int
   servico_id       Int
   data_hora_inicio DateTime            @db.Timestamp(6)
-  data_hora_fim    DateTime            @db.Timestamp(6)
+  data_hora_fim    DateTime?           @db.Timestamp(6)
   observacao       String?
   pago             Boolean?            @default(false)
   status           status_agendamento? @default(AGENDADO)

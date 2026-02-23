@@ -13,7 +13,7 @@ import Modal from '@/components/profile/Modal.vue'
 import { TableIcon } from "../../icons"
 import api from '@/services/api'
 import { Portuguese } from 'flatpickr/dist/l10n/pt.js'
-import Alert from '@/components/ui/Alert.vue'
+
 
 // --- ESTADOS ---
 const calendarRef = ref<any>(null)
@@ -112,6 +112,7 @@ const salvarAgendamento = async () => {
           slotMaxTime: '18:00:00',
           hiddenDays: [1],
           allDaySlot: false,
+          allDayText: 'Cheio',
           selectable: true,
           events: calendarEvents,
           select: handleSelect,

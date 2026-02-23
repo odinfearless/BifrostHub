@@ -6,13 +6,19 @@ const router = createRouter({
     return savedPosition || { left: 0, top: 0 }
   },
   routes: [
-    // Módulo: Salão de Cabelo
+   
     {
       path: '/salon/calendar',
-      name: 'SalonCalendar',
-      // TODO: Certifique-se de criar a pasta 'Salon' e o arquivo 'CalendarView.vue'
-      component: () => import('../views/Salon/CalendarView.vue'),
-      meta: { title: 'Agenda do Salão' },
+      name: 'Calendario',           
+      component: () => import('../views/Calendar/Calendar.vue'),
+      meta: { title: 'Agenda de Serviços' },
+    },
+
+    {
+      path: '/salon/customers',
+      name: 'Clientes',           
+      component: () => import('../views/Tables/BasicTables.vue'),
+      meta: { title: 'Pagina de clientes' },
     },
 
     // Módulo: Lava Rápido
@@ -36,8 +42,11 @@ const router = createRouter({
     // Rota Padrão (Redirecionamento caso queira que o sistema comece na agenda)
     {
       path: '/',
-      redirect: '/salon/calendar'
-    }
+      name: 'Dashboard',
+      // TODO: Certifique-se de criar a pasta 'Inventory' e o arquivo 'POSView.vue'
+      component: () => import('../views/Ecommerce.vue'),
+      meta: { title: 'Dashboard' },
+    },
   ],
 })
 
